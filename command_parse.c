@@ -912,6 +912,14 @@ bail:
 enum CommandResult parse_mailboxes(struct Buffer *buf, struct Buffer *s,
                                    intptr_t data, struct Buffer *err)
 {
+  enum CommandResult rc = MUTT_CMD_SUCCESS;
+
+  if (data & MUTT_COMMAND_DEPRECATED)
+  {
+    mutt_warning(_("Command '%s' is deprecated"), buf->data);
+    rc = MUTT_CMD_WARNING;
+  }
+
   while (MoreArgs(s))
   {
     struct Mailbox *m = mailbox_new();
@@ -994,7 +1002,7 @@ enum CommandResult parse_mailboxes(struct Buffer *buf, struct Buffer *s,
     mutt_monitor_add(m);
 #endif
   }
-  return MUTT_CMD_SUCCESS;
+  return rc;
 }
 
 /**
@@ -1967,6 +1975,14 @@ static void do_unmailboxes_star(void)
 enum CommandResult parse_unmailboxes(struct Buffer *buf, struct Buffer *s,
                                      intptr_t data, struct Buffer *err)
 {
+  enum CommandResult rc = MUTT_CMD_SUCCESS;
+
+  if (data & MUTT_COMMAND_DEPRECATED)
+  {
+    mutt_warning(_("Command '%s' is deprecated"), buf->data);
+    rc = MUTT_CMD_WARNING;
+  }
+
   while (MoreArgs(s))
   {
     mutt_extract_token(buf, s, MUTT_TOKEN_NO_FLAGS);
@@ -1974,7 +1990,7 @@ enum CommandResult parse_unmailboxes(struct Buffer *buf, struct Buffer *s,
     if (mutt_str_equal(buf->data, "*"))
     {
       do_unmailboxes_star();
-      return MUTT_CMD_SUCCESS;
+      return rc;
     }
 
     mutt_buffer_expand_path(buf);
@@ -1990,7 +2006,7 @@ enum CommandResult parse_unmailboxes(struct Buffer *buf, struct Buffer *s,
       }
     }
   }
-  return MUTT_CMD_SUCCESS;
+  return rc;
 }
 
 /**
