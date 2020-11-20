@@ -1,0 +1,49 @@
+digraph libmutt
+{
+	graph [
+		rankdir="TB"
+		nodesep="0.2"
+		ranksep="0.5"
+	]
+
+	node [
+		shape="Mrecord"
+		fontsize="12"
+		style="solid"
+		height="0.2"
+		penwidth="1.5"
+		color=black
+	]
+
+	edge [
+		penwidth="1.0"
+		arrowsize="0.5"
+	]
+
+	base64  -> buffer
+	buffer  -> string
+	charset -> regex
+	date    -> string
+	envlist -> string
+	file    -> string
+	hash    -> string
+	list    -> string
+	logging -> file
+	logging -> message
+	logging -> queue
+	logging -> string
+	mapping -> string
+	mbyte   -> buffer
+	mbyte   -> charset
+	memory  -> exit
+	memory  -> logging
+	path    -> string
+	random  -> exit
+	random  -> logging
+	random  -> message
+	regex   -> mbyte
+	signal  -> message
+	string  -> memory
+
+	{ rank=same file message queue md5 }
+}

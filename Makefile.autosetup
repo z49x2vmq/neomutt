@@ -650,6 +650,7 @@ distclean: clean
 		test/Makefile .clang_complete
 	$(RM) *.gc?? */*.gc?? test/*/*.gc??
 	$(RM) lcov.info lcov
+	$(RM) zzz.inc doxygen-build.txt tmp.txt
 
 ###############################################################################
 # generated
@@ -695,6 +696,11 @@ coverage: all test
 	-genhtml --output-directory lcov --frames lcov.info
 	lcov --list lcov.info
 @endif
+
+# Web Code docs (doxygen)
+.PHONY: html $(PWD)/mutt
+html:
+	$(SRCDIR)/doxygen/generate.sh
 
 ##############################################################################
 # include generated dependency files

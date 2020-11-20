@@ -42,3 +42,9 @@ hcache/hcversion.h
 *.tmp
 *~
 tags
+
+# Doxygen extras
+html
+doxygen-build.txt
+*.inc
+tmp.txt
