@@ -446,11 +446,11 @@ static void resort_index(struct Context *ctx, struct Menu *menu)
 /**
  * update_index_threaded - Update the index (if threaded)
  * @param ctx      Mailbox
- * @param check    Flags, e.g. #MX_CHECK_REOPENED
+ * @param check    Flags, e.g. #MX_STATUS_REOPENED
  * @param oldcount How many items are currently in the index
  */
 static void update_index_threaded(struct Context *ctx,
-                                  enum MxCheckReturns check, int oldcount)
+                                  enum MxStatus check, int oldcount)
 {
   struct Email **save_new = NULL;
   const bool lmt = ctx_has_limit(ctx);
@@ -458,7 +458,7 @@ static void update_index_threaded(struct Context *ctx,
   int num_new = MAX(0, ctx->mailbox->msg_count - oldcount);
 
   /* save the list of new messages */
-  if ((check != MX_CHECK_REOPENED) && (oldcount > 0) && (lmt || C_UncollapseNew) && (num_new > 0))
+  if ((check != MX_STATUS_REOPENED) && (oldcount > 0) && (lmt || C_UncollapseNew) && (num_new > 0))
   {
     save_new = mutt_mem_malloc(num_new * sizeof(struct Email *));
     for (int i = oldcount; i < ctx->mailbox->msg_count; i++)
@@ -470,7 +470,7 @@ static void update_index_threaded(struct Context *ctx,
    *
    * If the mailbox was reopened, need to rethread from scratch. */
   mutt_sort_headers(ctx->mailbox, ctx->threads,
-                    (check == MX_CHECK_REOPENED), &ctx->vsize);
+                    (check == MX_STATUS_REOPENED), &ctx->vsize);
 
   if (lmt)
   {
@@ -502,7 +502,7 @@ static void update_index_threaded(struct Context *ctx,
   /* uncollapse threads with new mail */
   if (C_UncollapseNew)
   {
-    if (check == MX_CHECK_REOPENED)
+    if (check == MX_STATUS_REOPENED)
     {
       ctx->collapsed = false;
       mutt_thread_collapse(ctx->threads, ctx->collapsed);
@@ -529,7 +529,7 @@ static void update_index_threaded(struct Context *ctx,
  * @param ctx      Mailbox
  * @param check    Flags, e.g. #MUTT_REOPENED
  */
-static void update_index_unthreaded(struct Context *ctx, enum MxCheckReturns check)
+static void update_index_unthreaded(struct Context *ctx, enum MxStatus check)
 {
   /* We are in a limited view. Check if the new message(s) satisfy
    * the limit criteria. If they do, set their virtual msgno so that
@@ -563,7 +563,7 @@ static void update_index_unthreaded(struct Context *ctx, enum MxCheckReturns che
 
   /* if the mailbox was reopened, need to rethread from scratch */
   mutt_sort_headers(ctx->mailbox, ctx->threads,
-                    (check == MX_CHECK_REOPENED), &ctx->vsize);
+                    (check == MX_STATUS_REOPENED), &ctx->vsize);
 }
 
 /**
@@ -607,7 +607,7 @@ static void set_current_email(struct CurrentEmail *cur, struct Email *e)
  * @param cur        Remember our place in the index
  */
 static void update_index(struct Menu *menu, struct Context *ctx,
-                         enum MxCheckReturns check, int oldcount,
+                         enum MxStatus check, int oldcount,
                          const struct CurrentEmail *cur)
 {
   if (!menu || !ctx)
@@ -653,7 +653,7 @@ static void update_index(struct Menu *menu, struct Context *ctx,
  * @note cur_email cannot be NULL
  */
 void mutt_update_index(struct Menu *menu, struct Context *ctx,
-                       enum MxCheckReturns check, int oldcount,
+                       enum MxStatus check, int oldcount,
                        const struct Email *cur_email)
 {
   struct CurrentEmail se = { .e = NULL, .sequence = cur_email->sequence };
@@ -712,14 +712,14 @@ static void change_folder_mailbox(struct Menu *menu, struct Mailbox *m, int *old
       new_last_folder = mutt_str_dup(mailbox_path(Context->mailbox));
     *oldcount = Context->mailbox->msg_count;
 
-    const enum MxCheckReturns check = mx_mbox_close(&Context);
-    if (check != MX_CHECK_NO_CHANGE)
+    const enum MxStatus check = mx_mbox_close(&Context);
+    if (check != MX_STATUS_OK)
     {
 #ifdef USE_INOTIFY
       if (monitor_remove_rc == 0)
         mutt_monitor_add(NULL);
 #endif
-      if ((check == MX_CHECK_NEW_MAIL) || (check == MX_CHECK_REOPENED))
+      if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED))
         update_index(menu, Context, check, *oldcount, cur);
 
       FREE(&new_last_folder);
@@ -1230,9 +1230,9 @@ int mutt_index_menu(struct MuttWindow *dlg)
       /* check for new mail in the mailbox.  If nonzero, then something has
        * changed about the file (either we got new mail or the file was
        * modified underneath us.) */
-      enum MxCheckReturns check = mx_mbox_check(Context->mailbox);
+      enum MxStatus check = mx_mbox_check(Context->mailbox);
 
-      if (check == MX_CHECK_ERROR)
+      if (check == MX_STATUS_ERROR)
       {
         if (mutt_buffer_is_empty(&Context->mailbox->pathbuf))
         {
@@ -1243,16 +1243,16 @@ int mutt_index_menu(struct MuttWindow *dlg)
 
         OptSearchInvalid = true;
       }
-      else if ((check == MX_CHECK_NEW_MAIL) || (check == MX_CHECK_REOPENED) ||
-               (check == MX_CHECK_FLAGS))
+      else if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED) ||
+               (check == MX_STATUS_FLAGS))
       {
         /* notify the user of new mail */
-        if (check == MX_CHECK_REOPENED)
+        if (check == MX_STATUS_REOPENED)
         {
           mutt_error(
               _("Mailbox was externally modified.  Flags may be wrong."));
         }
-        else if (check == MX_CHECK_NEW_MAIL)
+        else if (check == MX_STATUS_NEW_MAIL)
         {
           for (size_t i = 0; i < Context->mailbox->msg_count; i++)
           {
@@ -1274,7 +1274,7 @@ int mutt_index_menu(struct MuttWindow *dlg)
             }
           }
         }
-        else if (check == MX_CHECK_FLAGS)
+        else if (check == MX_STATUS_FLAGS)
         {
           mutt_message(_("Mailbox was externally modified"));
         }
@@ -1865,14 +1865,14 @@ int mutt_index_menu(struct MuttWindow *dlg)
           mutt_startup_shutdown_hook(MUTT_SHUTDOWN_HOOK);
           notify_send(NeoMutt->notify, NT_GLOBAL, NT_GLOBAL_SHUTDOWN, NULL);
 
-          enum MxCheckReturns check = MX_CHECK_NO_CHANGE;
-          if (!Context || ((check = mx_mbox_close(&Context)) == MX_CHECK_NO_CHANGE))
+          enum MxStatus check = MX_STATUS_OK;
+          if (!Context || ((check = mx_mbox_close(&Context)) == MX_STATUS_OK))
           {
             done = true;
           }
           else
           {
-            if ((check == MX_CHECK_NEW_MAIL) || (check == MX_CHECK_REOPENED))
+            if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED))
             {
               update_index(menu, Context, check, oldcount, &cur);
             }
@@ -2017,10 +2017,10 @@ int mutt_index_menu(struct MuttWindow *dlg)
       case OP_MAIN_IMAP_LOGOUT_ALL:
         if (Context && Context->mailbox && (Context->mailbox->type == MUTT_IMAP))
         {
-          const enum MxCheckReturns check = mx_mbox_close(&Context);
-          if (check != MX_CHECK_NO_CHANGE)
+          const enum MxStatus check = mx_mbox_close(&Context);
+          if (check != MX_STATUS_OK)
           {
-            if ((check == MX_CHECK_NEW_MAIL) || (check == MX_CHECK_REOPENED))
+            if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED))
             {
               update_index(menu, Context, check, oldcount, &cur);
             }
@@ -2063,8 +2063,8 @@ int mutt_index_menu(struct MuttWindow *dlg)
               e = mutt_get_virt_email(Context->mailbox, newidx);
           }
 
-          enum MxCheckReturns check = mx_mbox_sync(Context->mailbox);
-          if (check == MX_CHECK_NO_CHANGE)
+          enum MxStatus check = mx_mbox_sync(Context->mailbox);
+          if (check == MX_STATUS_OK)
           {
             if (e && (Context->mailbox->vcount != ovc))
             {
@@ -2080,7 +2080,7 @@ int mutt_index_menu(struct MuttWindow *dlg)
             }
             OptSearchInvalid = true;
           }
-          else if ((check == MX_CHECK_NEW_MAIL) || (check == MX_CHECK_REOPENED))
+          else if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED))
           {
             update_index(menu, Context, check, oc, &cur);
           }
@@ -2602,7 +2602,7 @@ int mutt_index_menu(struct MuttWindow *dlg)
         in_pager = true;
         menu->oldcurrent = menu->current;
         if (Context && Context->mailbox)
-          update_index(menu, Context, MX_CHECK_NEW_MAIL,
+          update_index(menu, Context, MX_STATUS_NEW_MAIL,
                        Context->mailbox->msg_count, &cur);
         continue;
       }
