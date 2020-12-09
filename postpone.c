@@ -305,7 +305,7 @@ static struct Email *dlg_select_postponed_email(struct Context *ctx)
 /**
  * hardclose - try hard to close a mailbox
  */
-static int hardclose(struct Context **pctx)
+static void hardclose(struct Context **pctx)
 {
   /* messages might have been marked for deletion.
    * try once more on reopen before giving up. */
