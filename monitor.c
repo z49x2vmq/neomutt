@@ -4,6 +4,7 @@
  *
  * @authors
  * Copyright (C) 2018 Gero Treuer <gero@70t.de>
+ * Copyright (C) 2020 R    Primus <rprimus@gmail.com>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -337,7 +338,7 @@ static enum ResolveResult monitor_resolve(struct MonitorInfo *info, struct Mailb
     info->type = m->type;
     info->path = m->realpath;
   }
-  else if (Context && Context->mailbox)
+  else if (ctx_mailbox(Context))
   {
     info->type = Context->mailbox->type;
     info->path = Context->mailbox->realpath;
@@ -542,7 +543,7 @@ int mutt_monitor_remove(struct Mailbox *m)
     goto cleanup;
   }
 
-  if (Context && Context->mailbox)
+  if (ctx_mailbox(Context))
   {
     if (m)
     {

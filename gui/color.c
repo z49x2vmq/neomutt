@@ -4,6 +4,7 @@
  *
  * @authors
  * Copyright (C) 1996-2002,2012 Michael R. Elkins <me@mutt.org>
+ * Copyright (C) 2020 R Primus <rprimus@gmail.com>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -1030,7 +1031,7 @@ static enum CommandResult add_pattern(struct Colors *c, struct ColorLineList *to
   }
 
   /* force re-caching of index colors */
-  if (is_index && Context && Context->mailbox)
+  if (is_index && ctx_mailbox(Context))
   {
     const struct Mailbox *m = Context->mailbox;
     for (int i = 0; i < m->msg_count; i++)

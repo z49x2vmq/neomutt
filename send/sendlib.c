@@ -5,6 +5,7 @@
  * @authors
  * Copyright (C) 1996-2002,2009-2012 Michael R. Elkins <me@mutt.org>
  * Copyright (C) 2019 Pietro Cerutti <gahr@gahr.ch>
+ * Copyright (C) 2020 R Primus <rprimus@gmail.com>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -1730,7 +1731,7 @@ done:
 #ifdef RECORD_FOLDER_HOOK
   /* We ran a folder hook for the destination mailbox,
    * now we run it for the user's current mailbox */
-  if (Context && Context->mailbox->path)
+  if (ctx_mailbox(Context))
     mutt_folder_hook(Context->mailbox->path, Context->mailbox->desc);
 #endif
 

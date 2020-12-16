@@ -4,6 +4,7 @@
  *
  * @authors
  * Copyright (C) 1996-2002,2007,2010,2012-2013 Michael R. Elkins <me@mutt.org>
+ * Copyright (C) 2020 R Primus <rprimus@gmail.com>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -1994,7 +1995,7 @@ static void pager_custom_redraw(struct Menu *pager_menu)
     mutt_curses_set_color(MT_COLOR_NORMAL);
     mutt_window_clear(rd->extra->win_pager);
 
-    if (IsEmail(rd->extra) && Context && Context->mailbox &&
+    if (IsEmail(rd->extra) && ctx_mailbox(Context) &&
         ((Context->mailbox->vcount + 1) < C_PagerIndexLines))
     {
       rd->indexlen = Context->mailbox->vcount + 1;
@@ -2148,7 +2149,7 @@ static void pager_custom_redraw(struct Menu *pager_menu)
     pager_menu->redraw |= REDRAW_STATUS; /* need to update the % seen */
   }
 
-  struct Mailbox *m = Context ? Context->mailbox : NULL;
+  struct Mailbox *m = ctx_mailbox(Context);
   if (pager_menu->redraw & REDRAW_STATUS)
   {
     struct HdrFormatInfo hfi;
@@ -2251,7 +2252,7 @@ int mutt_pager(const char *banner, const char *fname, PagerFlags flags, struct P
   char *followup_to = NULL;
 #endif
 
-  struct Mailbox *m = Context ? Context->mailbox : NULL;
+  struct Mailbox *m = ctx_mailbox(Context);
 
   if (!(flags & MUTT_SHOWCOLOR))
     flags |= MUTT_SHOWFLAT;
