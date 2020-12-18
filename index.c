@@ -860,11 +860,12 @@ void index_make_entry(char *buf, size_t buflen, struct Menu *menu, int line)
 {
   buf[0] = '\0';
 
-  if (!Context || !Context->mailbox || !menu || (line < 0) ||
-      (line >= Context->mailbox->email_max))
+  struct Mailbox *m = ctx_mailbox(Context);
+
+  if (!m || !menu || (line < 0) || (line >= m->email_max))
     return;
 
-  struct Email *e = mutt_get_virt_email(Context->mailbox, line);
+  struct Email *e = mutt_get_virt_email(m, line);
   if (!e)
     return;
 
@@ -883,12 +884,12 @@ void index_make_entry(char *buf, size_t buflen, struct Menu *menu, int line)
       if (reverse)
       {
         if (menu->top + menu->pagelen > menu->max)
-          edgemsgno = Context->mailbox->v2r[menu->max - 1];
+          edgemsgno = m->v2r[menu->max - 1];
         else
-          edgemsgno = Context->mailbox->v2r[menu->top + menu->pagelen - 1];
+          edgemsgno = m->v2r[menu->top + menu->pagelen - 1];
       }
       else
-        edgemsgno = Context->mailbox->v2r[menu->top];
+        edgemsgno = m->v2r[menu->top];
 
       for (tmp = e->thread->parent; tmp; tmp = tmp->parent)
       {
@@ -925,8 +926,8 @@ void index_make_entry(char *buf, size_t buflen, struct Menu *menu, int line)
     }
   }
 
-  mutt_make_string_flags(buf, buflen, menu->win_index->state.cols, NONULL(C_IndexFormat),
-                         Context->mailbox, Context->msg_in_pager, e, flags);
+  mutt_make_string_flags(buf, buflen, menu->win_index->state.cols,
+                         NONULL(C_IndexFormat), m, Context->msg_in_pager, e, flags);
 }
 
 /**
@@ -934,17 +935,19 @@ void index_make_entry(char *buf, size_t buflen, struct Menu *menu, int line)
  */
 int index_color(int line)
 {
-  if (!Context || !Context->mailbox || (line < 0))
+  struct Mailbox *m = ctx_mailbox(Context);
+
+  if (!m || (line < 0))
     return 0;
 
-  struct Email *e = mutt_get_virt_email(Context->mailbox, line);
+  struct Email *e = mutt_get_virt_email(m, line);
   if (!e)
     return 0;
 
   if (e->pair)
     return e->pair;
 
-  mutt_set_header_color(Context->mailbox, e);
+  mutt_set_header_color(m, e);
   return e->pair;
 }
 
@@ -3992,11 +3995,12 @@ int mutt_reply_observer(struct NotifyCallback *nc)
   if (!mutt_str_equal(ec->name, "reply_regex"))
     return 0;
 
-  if (!Context || !Context->mailbox)
+  struct Mailbox *m = ctx_mailbox(Context);
+
+  if (!m)
     return 0;
 
   regmatch_t pmatch[1];
-  struct Mailbox *m = Context->mailbox;
 
   for (int i = 0; i < m->msg_count; i++)
   {
