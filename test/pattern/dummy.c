@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "core/lib.h"
+#include "context.h"
 
 struct Address;
 struct Body;
@@ -53,6 +54,8 @@ bool g_is_mail_list = false;
 bool g_is_subscribed_list = false;
 const char *g_myvar = "hello";
 short AbortKey;
+
+extern struct Context *Context;
 
 enum MenuType
 {
@@ -258,4 +261,9 @@ int mutt_system(const char *cmd)
 void mutt_buffer_select_file(struct Buffer *file, SelectFileFlags flags,
                              char ***files, int *numfiles)
 {
+}
+
+struct Mailbox *ctx_mailbox(struct Context *ctx)
+{
+  return Context ? Context->mailbox : NULL;
 }
