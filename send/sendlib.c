@@ -1731,8 +1731,9 @@ done:
 #ifdef RECORD_FOLDER_HOOK
   /* We ran a folder hook for the destination mailbox,
    * now we run it for the user's current mailbox */
-  if (ctx_mailbox(Context))
-    mutt_folder_hook(Context->mailbox->path, Context->mailbox->desc);
+  const struct Mailbox *m = ctx_mailbox(Context);
+  if (m)
+    mutt_folder_hook(m->path, m->desc);
 #endif
 
   if (fp_tmp)

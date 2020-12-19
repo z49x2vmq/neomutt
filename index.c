@@ -4,6 +4,7 @@
  *
  * @authors
  * Copyright (C) 1996-2000,2002,2010,2012-2013 Michael R. Elkins <me@mutt.org>
+ * Copyright (C) 2020 R Primus <rprimus@gmail.com>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -689,23 +690,25 @@ static void change_folder_mailbox(struct Menu *menu, struct Mailbox *m, int *old
   if (!m)
     return;
 
+  struct Mailbox *cm = ctx_mailbox(Context);
+
   /* keepalive failure in mutt_enter_fname may kill connection. */
-  if (Context && Context->mailbox && (mutt_buffer_is_empty(&Context->mailbox->pathbuf)))
+  if (cm && (mutt_buffer_is_empty(&cm->pathbuf)))
     ctx_free(&Context);
 
-  if (Context && Context->mailbox)
+  if (cm)
   {
     char *new_last_folder = NULL;
 #ifdef USE_INOTIFY
     int monitor_remove_rc = mutt_monitor_remove(NULL);
 #endif
 #ifdef USE_COMP_MBOX
-    if (Context->mailbox->compress_info && (Context->mailbox->realpath[0] != '\0'))
-      new_last_folder = mutt_str_dup(Context->mailbox->realpath);
+    if (cm->compress_info && (cm->realpath[0] != '\0'))
+      new_last_folder = mutt_str_dup(cm->realpath);
     else
 #endif
-      new_last_folder = mutt_str_dup(mailbox_path(Context->mailbox));
-    *oldcount = Context->mailbox->msg_count;
+      new_last_folder = mutt_str_dup(mailbox_path(cm));
+    *oldcount = cm->msg_count;
 
     int check = mx_mbox_close(&Context);
     if (check != 0)
@@ -774,7 +777,7 @@ static void change_folder_mailbox(struct Menu *menu, struct Mailbox *m, int *old
 
   mutt_clear_error();
   /* force the mailbox check after we have changed the folder */
-  mutt_mailbox_check(ctx_mailbox(Context), MUTT_MAILBOX_CHECK_FORCE);
+  mutt_mailbox_check(em.mailbox, MUTT_MAILBOX_CHECK_FORCE);
   menu->redraw = REDRAW_FULL;
   OptSearchInvalid = true;
 }
@@ -1097,7 +1100,8 @@ static void index_custom_redraw(struct Menu *menu)
     mutt_show_error();
   }
 
-  struct Mailbox *m = Context ? Context->mailbox : NULL;
+  struct Mailbox *m = ctx_mailbox(Context);
+
   if (m && m->emails && !(menu->current >= m->vcount))
   {
     menu_check_recenter(menu);

@@ -4,7 +4,7 @@
  *
  * @authors
  * Copyright (C) 2018 Gero Treuer <gero@70t.de>
- * Copyright (C) 2020 R    Primus <rprimus@gmail.com>
+ * Copyright (C) 2020 R Primus <rprimus@gmail.com>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -543,7 +543,9 @@ int mutt_monitor_remove(struct Mailbox *m)
     goto cleanup;
   }
 
-  if (ctx_mailbox(Context))
+  struct Mailbox *cm = ctx_mailbox(Context);
+
+  if (cm)
   {
     if (m)
     {
@@ -556,7 +558,7 @@ int mutt_monitor_remove(struct Mailbox *m)
     }
     else
     {
-      if (mailbox_find(Context->mailbox->realpath))
+      if (mailbox_find(cm->realpath))
       {
         rc = 1;
         goto cleanup;
