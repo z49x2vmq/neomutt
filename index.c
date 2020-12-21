@@ -1405,7 +1405,7 @@ int mutt_index_menu(struct MuttWindow *dlg)
           continue;
         }
 
-        if (!Context || !Context->mailbox)
+        if (!ctx_mailbox(Context))
         {
           mutt_error(_("No mailbox is open"));
           continue;
@@ -2035,7 +2035,7 @@ int mutt_index_menu(struct MuttWindow *dlg)
 #endif
 
       case OP_MAIN_SYNC_FOLDER:
-        if (!Context || !Context->mailbox || (Context->mailbox->msg_count == 0))
+        if (!ctx_mailbox(Context) || (Context->mailbox->msg_count == 0))
           break;
 
         if (!prereq(Context, menu, CHECK_IN_MAILBOX | CHECK_MSGCOUNT | CHECK_READONLY))
@@ -2197,7 +2197,7 @@ int mutt_index_menu(struct MuttWindow *dlg)
       case OP_MAIN_MODIFY_TAGS:
       case OP_MAIN_MODIFY_TAGS_THEN_HIDE:
       {
-        if (!Context || !Context->mailbox)
+        if (!ctx_mailbox(Context))
           break;
         struct Mailbox *m = Context->mailbox;
         if (!mx_tags_is_supported(m))
